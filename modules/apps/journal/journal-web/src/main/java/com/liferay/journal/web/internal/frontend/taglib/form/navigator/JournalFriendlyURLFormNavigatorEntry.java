@@ -44,6 +44,10 @@ public class JournalFriendlyURLFormNavigatorEntry
 			return false;
 		}
 
+		if (isGlobalSiteOrDepot(article)) {
+			return false;
+		}
+
 		return true;
 	}
 
