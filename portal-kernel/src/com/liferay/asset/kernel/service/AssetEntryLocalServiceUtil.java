@@ -793,6 +793,13 @@ public class AssetEntryLocalServiceUtil {
 		return getService().updateVisible(className, classPK, visible);
 	}
 
+	public static AssetEntry updateVisible(
+			String className, long classPK, String title, boolean visible)
+		throws PortalException {
+
+		return getService().updateVisible(className, classPK, title, visible);
+	}
+
 	public static void validate(
 			long groupId, String className, long classPK, long classTypePK,
 			long[] categoryIds, String[] tagNames)

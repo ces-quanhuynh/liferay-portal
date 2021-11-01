@@ -575,6 +575,10 @@ public interface AssetEntryLocalService
 			String className, long classPK, boolean visible)
 		throws PortalException;
 
+	public AssetEntry updateVisible(
+			String className, long classPK, String title, boolean visible)
+		throws PortalException;
+
 	public void validate(
 			long groupId, String className, long classPK, long classTypePK,
 			long[] categoryIds, String[] tagNames)

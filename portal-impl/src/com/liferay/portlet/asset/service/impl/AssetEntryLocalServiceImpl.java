@@ -993,6 +993,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		return updateVisible(entry, visible);
 	}
 
+	@Override
 	public AssetEntry updateVisible(
 		String className, long classPK, String title, boolean visible)
 		throws PortalException {

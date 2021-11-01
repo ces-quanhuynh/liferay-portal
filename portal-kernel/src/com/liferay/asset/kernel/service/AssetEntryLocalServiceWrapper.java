@@ -897,6 +897,15 @@ public class AssetEntryLocalServiceWrapper
 	}
 
 	@Override
+	public AssetEntry updateVisible(
+			String className, long classPK, String title, boolean visible)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _assetEntryLocalService.updateVisible(
+			className, classPK, title, visible);
+	}
+
+	@Override
 	public void validate(
 			long groupId, String className, long classPK, long classTypePK,
 			long[] categoryIds, String[] tagNames)
