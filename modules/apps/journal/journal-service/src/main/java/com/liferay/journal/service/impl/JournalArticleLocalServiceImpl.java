@@ -4393,7 +4393,7 @@ public class JournalArticleLocalServiceImpl
 		if (visible) {
 			_assetEntryLocalService.updateVisible(
 				JournalArticle.class.getName(), article.getResourcePrimKey(),
-				true);
+				article.getTitleMapAsXML(), true);
 		}
 
 		// Comment
