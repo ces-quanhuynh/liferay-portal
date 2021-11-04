@@ -995,11 +995,12 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	@Override
 	public AssetEntry updateVisible(
-		String className, long classPK, String title, boolean visible)
+			String className, long classPK, String title, boolean visible)
 		throws PortalException {
 
 		AssetEntry entry = assetEntryPersistence.findByC_C(
 			_classNameLocalService.getClassNameId(className), classPK);
+
 		entry.setTitle(title);
 
 		return updateVisible(entry, visible);
