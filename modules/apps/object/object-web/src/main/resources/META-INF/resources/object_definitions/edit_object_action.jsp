@@ -25,7 +25,7 @@ ObjectAction objectAction = objectDefinitionsActionsDisplayContext.getObjectActi
 <liferay-frontend:side-panel-content
 	title='<%= LanguageUtil.get(request, "action") %>'
 >
-	<form action="javascript:;" onSubmit="<%= liferayPortletResponse.getNamespace() + "saveObjectAction();" %>">
+	<aui:form action="javascript:;" onSubmit="<%= liferayPortletResponse.getNamespace() + "saveObjectAction();" %>">
 		<div class="side-panel-content">
 			<div class="side-panel-content__body">
 				<div class="sheet">
@@ -58,7 +58,7 @@ ObjectAction objectAction = objectDefinitionsActionsDisplayContext.getObjectActi
 				<aui:button disabled="<%= !objectDefinitionsActionsDisplayContext.hasUpdateObjectDefinitionPermission() %>" name="save" type="submit" value='<%= LanguageUtil.get(request, "save") %>' />
 			</div>
 		</div>
-	</form>
+	</aui:form>
 </liferay-frontend:side-panel-content>
 
 <script>
