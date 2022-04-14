@@ -25,7 +25,7 @@ ObjectAction objectAction = objectDefinitionsActionsDisplayContext.getObjectActi
 <liferay-frontend:side-panel-content
 	title='<%= LanguageUtil.get(request, "action") %>'
 >
-	<aui:form action="javascript:;" onSubmit="<%= liferayPortletResponse.getNamespace() + "saveObjectAction();" %>">
+	<aui:form action="javascript:;" onSubmit='<%= liferayPortletResponse.getNamespace() + "saveObjectAction();" %>'>
 		<div class="side-panel-content">
 			<div class="side-panel-content__body">
 				<div class="sheet">
@@ -128,6 +128,13 @@ ObjectAction objectAction = objectDefinitionsActionsDisplayContext.getObjectActi
 			.then((response) => {
 				if (response.status === 401) {
 					window.location.reload();
+				}
+				else if (response.status === 400) {
+					Liferay.Util.openToast({
+						message:
+							'<%= LanguageUtil.get(request, "your-request-failed-to-complete") %>',
+						type: 'danger',
+					});
 				}
 				else if (response.ok) {
 					Liferay.Util.openToast({
