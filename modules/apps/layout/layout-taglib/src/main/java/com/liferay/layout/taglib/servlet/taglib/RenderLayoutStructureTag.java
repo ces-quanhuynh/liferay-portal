@@ -15,7 +15,6 @@
 package com.liferay.layout.taglib.servlet.taglib;
 
 import com.liferay.fragment.constants.FragmentEntryLinkConstants;
-import com.liferay.fragment.constants.FragmentWebKeys;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.DefaultFragmentRendererContext;
 import com.liferay.fragment.renderer.FragmentRendererController;
@@ -54,15 +53,22 @@ import com.liferay.layout.util.structure.collection.EmptyCollectionOptions;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.layoutconfiguration.util.RuntimePageUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTemplate;
 import com.liferay.portal.kernel.model.LayoutTemplateConstants;
+import com.liferay.portal.kernel.model.LayoutTypeAccessPolicy;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.model.impl.DefaultLayoutTypeAccessPolicyImpl;
+import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutTemplateLocalServiceUtil;
+import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
@@ -75,6 +81,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.LayoutTypeAccessPolicyTracker;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.taglib.util.IncludeTag;
 
@@ -167,6 +174,38 @@ public class RenderLayoutStructureTag extends IncludeTag {
 		}
 
 		return SKIP_BODY;
+	}
+
+	private boolean _checkAccessAllowedToPortlet(
+		ThemeDisplay themeDisplay, HttpServletRequest httpServletRequest,
+		String portletId) {
+
+		try {
+			Layout layout = (Layout)httpServletRequest.getAttribute(
+				WebKeys.LAYOUT);
+
+			LayoutTypeAccessPolicy layoutTypeAccessPolicy =
+				LayoutTypeAccessPolicyTracker.getLayoutTypeAccessPolicy(layout);
+
+			Portlet portlet = PortletLocalServiceUtil.getPortletById(
+				themeDisplay.getCompanyId(), portletId);
+
+			layoutTypeAccessPolicy.checkAccessAllowedToPortlet(
+				httpServletRequest, layout, portlet);
+
+			String checkAccessAllowedToPortletCacheKey = StringBundler.concat(
+				"LIFERAY_SHARED_",
+				DefaultLayoutTypeAccessPolicyImpl.class.getName(), "#",
+				layout.getPlid(), "#", portlet.getPortletId());
+
+			return GetterUtil.getBoolean(
+				httpServletRequest.getAttribute(
+					checkAccessAllowedToPortletCacheKey),
+				true);
+		}
+		catch (Exception exception) {
+			return false;
+		}
 	}
 
 	private LayoutStructure _getLayoutStructure() {
@@ -973,12 +1012,18 @@ public class RenderLayoutStructureTag extends IncludeTag {
 				HttpServletResponse httpServletResponse =
 					(HttpServletResponse)pageContext.getResponse();
 
-				if (GetterUtil.getBoolean(
-						httpServletRequest.getAttribute(
-							FragmentWebKeys.
-								ACCESS_ALLOWED_TO_FRAGMENT_ENTRY_LINK_ID +
-									fragmentEntryLink.getFragmentEntryLinkId()),
-						true)) {
+				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+					fragmentEntryLink.getEditableValues());
+
+				String portletId = jsonObject.getString("portletId");
+				String instanceId = jsonObject.getString("instanceId");
+
+				String encodePortletId = PortletIdCodec.encode(
+					portletId, instanceId);
+
+				if (Validator.isNull(portletId) ||
+					_checkAccessAllowedToPortlet(
+						themeDisplay, httpServletRequest, encodePortletId)) {
 
 					_write(
 						fragmentEntryLink, fragmentStyledLayoutStructureItem,
