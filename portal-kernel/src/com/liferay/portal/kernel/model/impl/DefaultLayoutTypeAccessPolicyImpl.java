@@ -64,22 +64,6 @@ public class DefaultLayoutTypeAccessPolicyImpl
 			DefaultLayoutTypeAccessPolicyImpl.class.getName(), "#",
 			layout.getPlid(), "#", portlet.getPortletId());
 
-		Boolean allowed = (Boolean)httpServletRequest.getAttribute(
-			checkAccessAllowedToPortletCacheKey);
-
-		if (allowed != null) {
-			if (allowed) {
-				return;
-			}
-
-			throw new PrincipalException.MustHavePermission(
-				PortalUtil.getUserId(httpServletRequest),
-				StringBundler.concat(
-					portlet.getDisplayName(), StringPool.SPACE,
-					portlet.getPortletId()),
-				0, ActionKeys.ACCESS);
-		}
-
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
