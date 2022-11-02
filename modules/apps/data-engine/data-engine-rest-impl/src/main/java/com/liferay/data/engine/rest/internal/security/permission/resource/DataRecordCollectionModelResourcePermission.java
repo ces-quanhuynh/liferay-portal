@@ -76,14 +76,17 @@ public class DataRecordCollectionModelResourcePermission
 			_dataDefinitionContentTypeTracker.getDataDefinitionContentType(
 				ddmStructure.getClassNameId());
 
-		if (dataDefinitionContentType == null) {
-			return false;
+		if (dataDefinitionContentType != null) {
+			return dataDefinitionContentType.hasPermission(
+				permissionChecker, ddlRecordSet.getCompanyId(),
+				ddlRecordSet.getGroupId(), _getModelResourceName(ddlRecordSet),
+				ddlRecordSet.getRecordSetId(), ddlRecordSet.getUserId(),
+				actionId);
 		}
 
-		return dataDefinitionContentType.hasPermission(
-			permissionChecker, ddlRecordSet.getCompanyId(),
-			ddlRecordSet.getGroupId(), _getModelResourceName(ddlRecordSet),
-			ddlRecordSet.getRecordSetId(), ddlRecordSet.getUserId(), actionId);
+		return permissionChecker.hasPermission(
+			ddlRecordSet.getGroupId(), ddlRecordSet.getModelClassName(),
+			ddlRecordSet.getRecordSetId(), actionId);
 	}
 
 	@Override
