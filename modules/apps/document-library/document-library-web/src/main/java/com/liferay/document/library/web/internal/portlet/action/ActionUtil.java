@@ -227,8 +227,8 @@ public class ActionUtil {
 			String portletId = portletDisplay.getId();
 
 			try (SafeCloseable safeCloseable =
-					CTCollectionThreadLocal.
-						setProductionModeWithSafeCloseable()) {
+					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+						CTCollectionThreadLocal.getCTCollectionId())) {
 
 				PortletPreferences portletPreferences =
 					PortletPreferencesFactoryUtil.getPortletPreferences(
