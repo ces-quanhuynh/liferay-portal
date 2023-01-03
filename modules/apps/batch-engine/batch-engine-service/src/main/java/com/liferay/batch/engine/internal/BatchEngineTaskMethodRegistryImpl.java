@@ -129,8 +129,13 @@ public class BatchEngineTaskMethodRegistryImpl
 			if (batchEngineTaskItemDelegateExecutorCreatorMap.containsKey(
 					batchEngineTaskItemDelegateName)) {
 
-				throw new IllegalStateException(
-					batchEngineTaskItemDelegateName + " is already registered");
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						batchEngineTaskItemDelegateName +
+							" is already registered");
+				}
+
+				return null;
 			}
 
 			ServiceObjects<BatchEngineTaskItemDelegate<Object>> serviceObjects =
