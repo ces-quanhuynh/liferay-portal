@@ -14,11 +14,40 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.kernel.model.PermissionPropagationEntry;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.service.base.PermissionPropagationEntryLocalServiceBaseImpl;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Quan Huynh
  */
 public class PermissionPropagationEntryLocalServiceImpl
 	extends PermissionPropagationEntryLocalServiceBaseImpl {
+
+	public void addPermissionPropagationEntry(
+		long companyId, long groupId, String className, long classPK,
+		boolean propagation) {
+
+		long permissionPropagationEntryId = counterLocalService.increment();
+
+		PermissionPropagationEntry permissionPropagationEntry =
+			permissionPropagationEntryPersistence.create(
+				permissionPropagationEntryId);
+
+		permissionPropagationEntry.setGroupId(groupId);
+		permissionPropagationEntry.setCompanyId(companyId);
+		permissionPropagationEntry.setClassNameId(
+			_classNameLocalService.getClassNameId(className));
+		permissionPropagationEntry.setClassPK(classPK);
+		permissionPropagationEntry.setPropagation(propagation);
+
+		permissionPropagationEntryPersistence.update(
+			permissionPropagationEntry);
+	}
+
+	@BeanReference(type = ClassNameLocalService.class)
+	private ClassNameLocalService _classNameLocalService;
+
 }
