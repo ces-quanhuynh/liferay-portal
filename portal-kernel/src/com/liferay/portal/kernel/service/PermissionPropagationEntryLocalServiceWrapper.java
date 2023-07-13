@@ -42,6 +42,15 @@ public class PermissionPropagationEntryLocalServiceWrapper
 			permissionPropagationEntryLocalService;
 	}
 
+	@Override
+	public void addPermissionPropagationEntry(
+		long companyId, long groupId, String className, long classPK,
+		boolean propagation) {
+
+		_permissionPropagationEntryLocalService.addPermissionPropagationEntry(
+			companyId, groupId, className, classPK, propagation);
+	}
+
 	/**
 	 * Adds the permission propagation entry to the database. Also notifies the appropriate model listeners.
 	 *
