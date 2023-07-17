@@ -1,0 +1,66 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+package com.liferay.change.tracking.internal.spi.reference;
+
+import com.liferay.change.tracking.spi.reference.TableReferenceDefinition;
+import com.liferay.change.tracking.spi.reference.builder.ChildTableReferenceInfoBuilder;
+import com.liferay.change.tracking.spi.reference.builder.ParentTableReferenceInfoBuilder;
+import com.liferay.portal.kernel.model.PermissionPropagationEntry;
+import com.liferay.portal.kernel.model.PermissionPropagationEntryTable;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.PermissionPropagationEntryPersistence;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
+/**
+ * @author Quan Huynh
+ */
+@Component(service = TableReferenceDefinition.class)
+public class PermissionPropagationEntryTableReferenceDefinition
+	implements TableReferenceDefinition<PermissionPropagationEntryTable> {
+
+	@Override
+	public void defineChildTableReferences(
+		ChildTableReferenceInfoBuilder<PermissionPropagationEntryTable>
+			childTableReferenceInfoBuilder) {
+
+		childTableReferenceInfoBuilder.resourcePermissionReference(
+			PermissionPropagationEntryTable.INSTANCE.
+				permissionPropagationEntryId,
+			PermissionPropagationEntry.class);
+	}
+
+	@Override
+	public void defineParentTableReferences(
+		ParentTableReferenceInfoBuilder<PermissionPropagationEntryTable>
+			parentTableReferenceInfoBuilder) {
+	}
+
+	@Override
+	public BasePersistence<?> getBasePersistence() {
+		return _permissionPropagationEntryPersistence;
+	}
+
+	@Override
+	public PermissionPropagationEntryTable getTable() {
+		return PermissionPropagationEntryTable.INSTANCE;
+	}
+
+	@Reference
+	private PermissionPropagationEntryPersistence
+		_permissionPropagationEntryPersistence;
+
+}
