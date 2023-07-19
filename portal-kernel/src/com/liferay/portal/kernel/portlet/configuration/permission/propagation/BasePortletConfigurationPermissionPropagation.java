@@ -41,4 +41,11 @@ public abstract class BasePortletConfigurationPermissionPropagation
 		return ParamUtil.getLong(portletRequest, "resourceGroupId");
 	}
 
+	protected boolean getPermissionPropagationEnabled(
+		PortletRequest portletRequest) {
+
+		return ParamUtil.getBoolean(
+			portletRequest, "permissionPropagationEnabled");
+	}
+
 }

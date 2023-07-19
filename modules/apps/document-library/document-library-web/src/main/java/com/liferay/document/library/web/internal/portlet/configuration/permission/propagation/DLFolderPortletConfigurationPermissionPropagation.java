@@ -102,6 +102,15 @@ public class DLFolderPortletConfigurationPermissionPropagation
 	@Override
 	public void updatePermissionPropagation(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		_permissionPropagationEntryLocalService.
+			updatePermissionPropagationEntry(
+				themeDisplay.getCompanyId(), getGroupId(actionRequest),
+				DLFolder.class.getName(), getClassPK(actionRequest),
+				getPermissionPropagationEnabled(actionRequest));
 	}
 
 	private boolean _isBulkSelection(PortletRequest portletRequest) {
