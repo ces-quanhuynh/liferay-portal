@@ -36,12 +36,13 @@ public class InputPermissionsTag extends IncludeTag {
 
 		return doTag(
 			_PAGE, formName, modelName, permissionPropagationCheckboxLabel,
-			false, pageContext);
+			false, false, pageContext);
 	}
 
 	public static String doTag(
 			String page, String formName, String modelName,
-			String permissionPropagationCheckboxLabel, boolean reverse,
+			String permissionPropagationCheckboxLabel,
+			boolean permissionPropagationCheckboxValue, boolean reverse,
 			PageContext pageContext)
 		throws Exception {
 
@@ -66,6 +67,9 @@ public class InputPermissionsTag extends IncludeTag {
 			"liferay-ui:input-permissions:permissionPropagationCheckboxLabel",
 			permissionPropagationCheckboxLabel);
 		httpServletRequest.setAttribute(
+			"liferay-ui:input-permissions:permissionPropagationCheckboxValue",
+			permissionPropagationCheckboxValue);
+		httpServletRequest.setAttribute(
 			"liferay-ui:input-permissions:reverse", reverse);
 		httpServletRequest.setAttribute(
 			"liferay-ui:input-permissions:supportedActions",
@@ -81,7 +85,8 @@ public class InputPermissionsTag extends IncludeTag {
 		try {
 			doTag(
 				getPage(), _formName, _modelName,
-				_permissionPropagationCheckboxLabel, _reverse, pageContext);
+				_permissionPropagationCheckboxLabel,
+				_permissionPropagationCheckboxValue, _reverse, pageContext);
 
 			return EVAL_PAGE;
 		}
@@ -100,6 +105,10 @@ public class InputPermissionsTag extends IncludeTag {
 
 	public String getPermissionPropagationCheckboxLabel() {
 		return _permissionPropagationCheckboxLabel;
+	}
+
+	public boolean isPermissionPropagationCheckboxValue() {
+		return _permissionPropagationCheckboxValue;
 	}
 
 	public boolean isReverse() {
@@ -121,6 +130,13 @@ public class InputPermissionsTag extends IncludeTag {
 			permissionPropagationCheckboxLabel;
 	}
 
+	public void setPermissionPropagationCheckboxValue(
+		boolean permissionPropagationCheckboxValue) {
+
+		_permissionPropagationCheckboxValue =
+			permissionPropagationCheckboxValue;
+	}
+
 	public void setReverse(boolean reverse) {
 		_reverse = reverse;
 	}
@@ -136,6 +152,7 @@ public class InputPermissionsTag extends IncludeTag {
 	private String _formName = "fm";
 	private String _modelName;
 	private String _permissionPropagationCheckboxLabel;
+	private boolean _permissionPropagationCheckboxValue;
 	private boolean _reverse;
 
 }
