@@ -237,26 +237,27 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 					markupView="lexicon"
 				/>
 			</liferay-ui:search-container>
-		</aui:form>
-	</div>
 
-	<div class="bg-white fixed-bottom modal-footer">
-		<c:if test="<%= (portletConfigurationPermissionPropagation != null) && portletConfigurationPermissionPropagation.isShow(renderRequest) %>">
-			<div class="modal-item-first">
-				<aui:input autoSize="<%= true %>" checked="<%= portletConfigurationPermissionPropagation.getPermissionPropagation(renderRequest) %>" cssClass="autofit-col" label="<%= portletConfigurationPermissionPropagation.getMessage() %>" labelCssClass="align-items-center d-flex font-weight-normal" name="permissionPropagationEnabled" type="checkbox" wrapperCssClass="mb-0" />
+			<div class="bg-white fixed-bottom modal-footer">
+				<c:if test="<%= (portletConfigurationPermissionPropagation != null) && portletConfigurationPermissionPropagation.isShow(renderRequest) %>">
+					<div class="modal-item-first">
+						<aui:input autoSize="<%= true %>" checked="<%= portletConfigurationPermissionPropagation.getPermissionPropagation(renderRequest) %>" cssClass="autofit-col" label="<%= portletConfigurationPermissionPropagation.getMessage() %>" labelCssClass="align-items-center d-flex font-weight-normal" name="permissionPropagationEnabled" type="checkbox" wrapperCssClass="mb-0" />
+					</div>
+				</c:if>
+
+				<div class="modal-item-last">
+					<div class="btn-group">
+						<div class="btn-group-item">
+							<aui:button name="saveButton" type="submit" />
+						</div>
+
+						<div class="btn-group-item">
+							<aui:button type="cancel" />
+						</div>
+					</div>
+				</div>
 			</div>
-		</c:if>
-
-		<div class="modal-item-last">
-			<div class="btn-group">
-				<div class="btn-group-item">
-					<aui:button name="saveButton" type="submit" />
-				</div>
-
-				<div class="btn-group-item">
-					<aui:button type="cancel" />
-				</div>
-		</div>
+		</aui:form>
 	</div>
 </div>
 
