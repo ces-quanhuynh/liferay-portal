@@ -14,8 +14,15 @@
 
 package com.liferay.portal.kernel.portlet.configuration.permission.propagation;
 
+import com.liferay.portal.kernel.model.PermissionPropagationEntry;
+import com.liferay.portal.kernel.service.PermissionPropagationEntryLocalServiceUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 
+import javax.portlet.ActionRequest;
+import javax.portlet.ActionResponse;
 import javax.portlet.PortletRequest;
 
 /**
@@ -25,27 +32,68 @@ public abstract class BasePortletConfigurationPermissionPropagation
 	implements PortletConfigurationPermissionPropagation {
 
 	@Override
-	public boolean isShow(PortletRequest portletRequest) {
-		return false;
+	public boolean getPermissionPropagation(PortletRequest portletRequest) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionPropagationEntry permissionPropagationEntry =
+			PermissionPropagationEntryLocalServiceUtil.
+				fetchPermissionPropagationEntry(
+					themeDisplay.getCompanyId(), getGroupId(portletRequest),
+					getClassName(), getClassPK(portletRequest));
+
+		if (permissionPropagationEntry != null) {
+			return permissionPropagationEntry.isPropagation();
+		}
+
+		return getDefaultPermissionPropagation();
 	}
 
-	protected String getClassName(PortletRequest portletRequest) {
-		return ParamUtil.getString(portletRequest, "modelResource");
+	@Override
+	public boolean isAvailable(PortletRequest portletRequest) {
+		String modelResource = ParamUtil.getString(
+			portletRequest, "modelResource");
+
+		if (!ArrayUtil.contains(getModelResources(), modelResource) ||
+			(getClassPK(portletRequest) == 0)) {
+
+			return false;
+		}
+
+		return true;
 	}
+
+	@Override
+	public void updatePermissionPropagation(
+		ActionRequest actionRequest, ActionResponse actionResponse) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionPropagationEntryLocalServiceUtil.
+			updatePermissionPropagationEntry(
+				themeDisplay.getCompanyId(), getGroupId(actionRequest),
+				getClassName(), getClassPK(actionRequest),
+				ParamUtil.getBoolean(
+					actionRequest, "permissionPropagationEnabled"));
+	}
+
+	protected abstract String getClassName();
 
 	protected long getClassPK(PortletRequest portletRequest) {
 		return ParamUtil.getLong(portletRequest, "resourcePrimKey");
 	}
 
+	protected abstract boolean getDefaultPermissionPropagation();
+
 	protected long getGroupId(PortletRequest portletRequest) {
-		return ParamUtil.getLong(portletRequest, "resourceGroupId");
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		return ParamUtil.getLong(
+			portletRequest, "resourceGroupId", themeDisplay.getScopeGroupId());
 	}
 
-	protected boolean getPermissionPropagationEnabled(
-		PortletRequest portletRequest) {
-
-		return ParamUtil.getBoolean(
-			portletRequest, "permissionPropagationEnabled");
-	}
+	protected abstract String[] getModelResources();
 
 }

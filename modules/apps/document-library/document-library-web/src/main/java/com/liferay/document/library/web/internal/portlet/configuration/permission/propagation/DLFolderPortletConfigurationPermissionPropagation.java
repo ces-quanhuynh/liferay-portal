@@ -16,24 +16,11 @@ package com.liferay.document.library.web.internal.portlet.configuration.permissi
 
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFolder;
-import com.liferay.document.library.kernel.model.DLFolderConstants;
-import com.liferay.portal.kernel.model.PermissionPropagationEntry;
 import com.liferay.portal.kernel.portlet.configuration.permission.propagation.BasePortletConfigurationPermissionPropagation;
 import com.liferay.portal.kernel.portlet.configuration.permission.propagation.PortletConfigurationPermissionPropagation;
-import com.liferay.portal.kernel.service.PermissionPropagationEntryLocalService;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.documentlibrary.constants.DLConstants;
 
-import java.util.Objects;
-
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
-import javax.portlet.PortletRequest;
-
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author To Trinh
@@ -56,76 +43,20 @@ public class DLFolderPortletConfigurationPermissionPropagation
 	}
 
 	@Override
-	public boolean getPermissionPropagation(PortletRequest portletRequest) {
-		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long groupId = getGroupId(portletRequest);
-
-		long classPK = getClassPK(portletRequest);
-
-		if (classPK == groupId) {
-			classPK = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
-		}
-
-		PermissionPropagationEntry permissionPropagationEntry =
-			_permissionPropagationEntryLocalService.
-				fetchPermissionPropagationEntry(
-					themeDisplay.getCompanyId(), groupId,
-					DLFolder.class.getName(), classPK);
-
-		if (permissionPropagationEntry != null) {
-			return permissionPropagationEntry.isPropagation();
-		}
-
-		if (classPK == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			return true;
-		}
-
-		return false;
+	protected String getClassName() {
+		return DLFolder.class.getName();
 	}
 
 	@Override
-	public boolean isShow(PortletRequest portletRequest) {
-		if ((!Objects.equals(
-				getClassName(portletRequest), DLFolder.class.getName()) &&
-			 !Objects.equals(
-				 getClassName(portletRequest), DLConstants.RESOURCE_NAME)) ||
-			_isBulkSelection(portletRequest)) {
-
-			return false;
-		}
-
+	protected boolean getDefaultPermissionPropagation() {
 		return true;
 	}
 
 	@Override
-	public void updatePermissionPropagation(
-		ActionRequest actionRequest, ActionResponse actionResponse) {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		_permissionPropagationEntryLocalService.
-			updatePermissionPropagationEntry(
-				themeDisplay.getCompanyId(), getGroupId(actionRequest),
-				DLFolder.class.getName(), getClassPK(actionRequest),
-				getPermissionPropagationEnabled(actionRequest));
+	protected String[] getModelResources() {
+		return new String[] {
+			DLFolder.class.getName(), DLConstants.RESOURCE_NAME
+		};
 	}
-
-	private boolean _isBulkSelection(PortletRequest portletRequest) {
-		String[] resourcePrimKeys = ParamUtil.getStringValues(
-			portletRequest, "resourcePrimKey");
-
-		if (resourcePrimKeys.length > 1) {
-			return true;
-		}
-
-		return false;
-	}
-
-	@Reference
-	private PermissionPropagationEntryLocalService
-		_permissionPropagationEntryLocalService;
 
 }
