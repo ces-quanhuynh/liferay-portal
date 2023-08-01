@@ -39,7 +39,7 @@ public class CaptchaResourceImpl extends BaseCaptchaResourceImpl {
 			_configurationProvider.getCompanyConfiguration(
 				CaptchaConfiguration.class, _contextCompany.getCompanyId());
 
-		if (!captchaConfiguration.enabledHeadlessApiSimpleCaptcha() &&
+		if (!captchaConfiguration.enabledHeadlessApiSimpleCaptcha() ||
 			StringUtil.equalsIgnoreCase(
 				captchaConfiguration.captchaEngine(),
 				ReCaptchaImpl.class.getName())) {
