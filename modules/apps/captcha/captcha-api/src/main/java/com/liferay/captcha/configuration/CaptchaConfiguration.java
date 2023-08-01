@@ -60,6 +60,12 @@ public interface CaptchaConfiguration {
 	)
 	public String captchaEngine();
 
+	@Meta.AD(
+		deflt = "false", name = "enabled-headless-api-simple-captcha",
+		required = false
+	)
+	public boolean enabledHeadlessApiSimpleCaptcha();
+
 	@Meta.AD(name = "recaptcha-public-key", required = false)
 	public String reCaptchaPublicKey();
 
