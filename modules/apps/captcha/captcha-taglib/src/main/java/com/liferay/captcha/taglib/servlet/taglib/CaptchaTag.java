@@ -5,7 +5,13 @@
 
 package com.liferay.captcha.taglib.servlet.taglib;
 
+import com.liferay.captcha.configuration.CaptchaConfiguration;
 import com.liferay.osgi.util.service.Snapshot;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -51,12 +57,34 @@ public class CaptchaTag extends IncludeTag {
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
 		httpServletRequest.setAttribute(
+			"liferay-captcha:captcha:portletId",
+			_getPortletId(httpServletRequest));
+		httpServletRequest.setAttribute(
 			"liferay-captcha:captcha:url", _getURL(httpServletRequest));
+	}
+
+	private String _getPortletId(HttpServletRequest httpServletRequest) {
+		return PortalUtil.getPortletId(httpServletRequest);
 	}
 
 	private String _getURL(HttpServletRequest httpServletRequest) {
 		if (Validator.isNotNull(_url)) {
 			return _url;
+		}
+
+		try {
+			CaptchaConfiguration captchaConfiguration =
+				ConfigurationProviderUtil.getSystemConfiguration(
+					CaptchaConfiguration.class);
+
+			if (captchaConfiguration.enableSimpleCaptchaHeadlessAPI()) {
+				return StringPool.BLANK;
+			}
+		}
+		catch (ConfigurationException configurationException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(configurationException);
+			}
 		}
 
 		ThemeDisplay themeDisplay =
@@ -65,7 +93,7 @@ public class CaptchaTag extends IncludeTag {
 
 		String url = themeDisplay.getPathMain() + "/portal/captcha/get_image";
 
-		String portletId = PortalUtil.getPortletId(httpServletRequest);
+		String portletId = _getPortletId(httpServletRequest);
 
 		if (Validator.isNotNull(portletId)) {
 			url += "?portletId=" + portletId;
@@ -75,6 +103,8 @@ public class CaptchaTag extends IncludeTag {
 	}
 
 	private static final String _PAGE = "/captcha/page.jsp";
+
+	private static final Log _log = LogFactoryUtil.getLog(CaptchaTag.class);
 
 	private static final Snapshot<ServletContext> _servletContextSnapshot =
 		new Snapshot<>(
