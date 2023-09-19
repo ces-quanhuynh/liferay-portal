@@ -102,10 +102,13 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserGroupLocalService;
@@ -155,12 +158,15 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -2771,6 +2777,80 @@ public class DLFileEntryLocalServiceImpl
 		}
 	}
 
+	private void _inheritRolesPermissions(
+			long inheritableParentFolderId, DLFileEntry dlFileEntry)
+		throws PortalException {
+
+		long companyId = dlFileEntry.getCompanyId();
+		String parentClassName = DLFolderConstants.getClassName();
+
+		if (inheritableParentFolderId ==
+				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+
+			int count =
+				_resourcePermissionLocalService.getResourcePermissionsCount(
+					companyId, DLConstants.RESOURCE_NAME,
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					String.valueOf(dlFileEntry.getGroupId()));
+
+			if (count == 0) {
+				_resourceLocalService.addResources(
+					companyId, dlFileEntry.getGroupId(), 0,
+					DLConstants.RESOURCE_NAME,
+					String.valueOf(dlFileEntry.getGroupId()), false, true,
+					true);
+			}
+
+			parentClassName = DLConstants.RESOURCE_NAME;
+			inheritableParentFolderId = dlFileEntry.getGroupId();
+		}
+
+		Map<Long, Set<String>> dlFolderRoleIdsToActionIds =
+			_resourcePermissionLocalService.
+				getAvailableResourcePermissionActionIds(
+					companyId, parentClassName,
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					String.valueOf(inheritableParentFolderId),
+					ResourceActionsUtil.getModelResourceActions(
+						DLFolderConstants.getClassName()));
+
+		Map<Long, Set<String>> dlFileEntryRoleIdsToActionIds =
+			_resourcePermissionLocalService.
+				getAvailableResourcePermissionActionIds(
+					companyId, DLFileEntryConstants.getClassName(),
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					String.valueOf(dlFileEntry.getFileEntryId()),
+					ResourceActionsUtil.getModelResourceActions(
+						DLFileEntryConstants.getClassName()));
+
+		Set<Long> dlFolderRoleIds = dlFolderRoleIdsToActionIds.keySet();
+
+		for (Long dlFolderRoleId : dlFolderRoleIds) {
+			Set<String> dlFolderRoleIdToActionIds =
+				dlFolderRoleIdsToActionIds.get(dlFolderRoleId);
+
+			dlFolderRoleIdToActionIds.retainAll(_commonPermissions);
+
+			Set<String> dlFileEntryActionIds = new HashSet<>(
+				dlFolderRoleIdToActionIds);
+
+			Set<String> dlFileEntryRoleIdToActionIds =
+				dlFileEntryRoleIdsToActionIds.get(dlFolderRoleId);
+
+			if (dlFileEntryRoleIdToActionIds != null) {
+				dlFileEntryRoleIdToActionIds.removeAll(_commonPermissions);
+
+				dlFileEntryActionIds.addAll(dlFileEntryRoleIdToActionIds);
+			}
+
+			_resourcePermissionLocalService.setResourcePermissions(
+				companyId, DLFileEntryConstants.getClassName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(dlFileEntry.getFileEntryId()), dlFolderRoleId,
+				dlFileEntryActionIds.toArray(new String[0]));
+		}
+	}
+
 	private boolean _isValidFileVersionNumber(String version) {
 		if (Validator.isNull(version)) {
 			return false;
@@ -3639,6 +3719,10 @@ public class DLFileEntryLocalServiceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLFileEntryLocalServiceImpl.class);
 
+	private static final Set<String> _commonPermissions = new HashSet<>(
+		Arrays.asList(
+			ActionKeys.DELETE, ActionKeys.PERMISSIONS, ActionKeys.UPDATE,
+			ActionKeys.VIEW));
 	private static final Pattern _fileVersionPattern = Pattern.compile(
 		"\\d+\\.\\d+");
 	private static volatile TrashHelper _trashHelper =
@@ -3706,6 +3790,9 @@ public class DLFileEntryLocalServiceImpl
 
 	@BeanReference(type = ResourceLocalService.class)
 	private ResourceLocalService _resourceLocalService;
+
+	@BeanReference(type = ResourcePermissionLocalService.class)
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	@BeanReference(type = RoleLocalService.class)
 	private RoleLocalService _roleLocalService;
