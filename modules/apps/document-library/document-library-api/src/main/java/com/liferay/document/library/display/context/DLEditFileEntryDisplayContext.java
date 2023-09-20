@@ -40,6 +40,14 @@ public interface DLEditFileEntryDisplayContext extends DLDisplayContext {
 		return null;
 	}
 
+	public default long getInheritableParentFolderId() {
+		return -1;
+	}
+
+	public default String getInheritableParentFolderName() {
+		return null;
+	}
+
 	public long getMaximumUploadRequestSize() throws PortalException;
 
 	public long getMaximumUploadSize() throws PortalException;

@@ -365,9 +365,18 @@ else {
 			persistState="<%= true %>"
 			title="permissions"
 		>
-			<liferay-ui:input-permissions
-				modelName="<%= DLFileEntryConstants.getClassName() %>"
-			/>
+			<c:choose>
+				<c:when test='<%= FeatureFlagManagerUtil.isEnabled("LPS-87806") && (dlEditFileEntryDisplayContext.getInheritableParentFolderId() >= 0) %>'>
+					<label class="font-weight-normal mb-3">
+						<liferay-ui:message arguments='<%= "<strong>" + HtmlUtil.escape(dlEditFileEntryDisplayContext.getInheritableParentFolderName()) + "</strong>" %>' key="these-permissions-are-inherited-from-the-parent-folder" />
+					</label>
+				</c:when>
+				<c:otherwise>
+					<liferay-ui:input-permissions
+						modelName="<%= DLFileEntryConstants.getClassName() %>"
+					/>
+				</c:otherwise>
+			</c:choose>
 		</liferay-ui:panel>
 	</liferay-ui:panel-container>
 

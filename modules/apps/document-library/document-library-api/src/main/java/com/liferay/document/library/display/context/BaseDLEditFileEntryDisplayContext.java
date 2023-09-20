@@ -99,6 +99,16 @@ public class BaseDLEditFileEntryDisplayContext
 	}
 
 	@Override
+	public long getInheritableParentFolderId() {
+		return parentDisplayContext.getInheritableParentFolderId();
+	}
+
+	@Override
+	public String getInheritableParentFolderName() {
+		return parentDisplayContext.getInheritableParentFolderName();
+	}
+
+	@Override
 	public long getMaximumUploadRequestSize() throws PortalException {
 		return parentDisplayContext.getMaximumUploadRequestSize();
 	}

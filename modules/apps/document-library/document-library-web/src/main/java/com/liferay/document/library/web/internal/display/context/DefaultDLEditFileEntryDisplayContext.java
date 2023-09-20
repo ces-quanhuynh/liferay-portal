@@ -10,6 +10,8 @@ import com.liferay.document.library.display.context.DLFilePicker;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.document.library.kernel.service.DLFileEntryMetadataLocalServiceUtil;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.document.library.kernel.util.DLValidator;
@@ -30,10 +32,14 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanParamUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.configuration.UploadServletRequestConfigurationProviderUtil;
@@ -44,7 +50,9 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.RepositoryUtil;
+import com.liferay.portlet.documentlibrary.util.DLPermissionPropagationUtil;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -163,6 +171,60 @@ public class DefaultDLEditFileEntryDisplayContext
 		sb.append(StringPool.SLASH);
 
 		return sb.toString();
+	}
+
+	@Override
+	public long getInheritableParentFolderId() {
+		long folderId = BeanParamUtil.getLong(
+			_fileEntry, _dlRequestHelper.getRequest(), "folderId");
+
+		List<Long> ancestorIds = new ArrayList<>();
+
+		try {
+			if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+				Folder folder = DLAppServiceUtil.getFolder(folderId);
+
+				if (folder != null) {
+					ancestorIds.add(folder.getFolderId());
+					ancestorIds.addAll(folder.getAncestorFolderIds());
+				}
+			}
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return DLPermissionPropagationUtil.getInheritableParentFolderId(
+			_dlRequestHelper.getCompanyId(), _dlRequestHelper.getScopeGroupId(),
+			ancestorIds);
+	}
+
+	public String getInheritableParentFolderName() {
+		long inheritableParentFolderId = getInheritableParentFolderId();
+
+		if (inheritableParentFolderId ==
+				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+
+			return LanguageUtil.get(_httpServletRequest, "home");
+		}
+
+		try {
+			Folder folder = DLAppServiceUtil.getFolder(
+				inheritableParentFolderId);
+
+			if (folder != null) {
+				return folder.getName();
+			}
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return StringPool.BLANK;
 	}
 
 	@Override
@@ -484,6 +546,9 @@ public class DefaultDLEditFileEntryDisplayContext
 
 	private static final UUID _UUID = UUID.fromString(
 		"63326141-02F6-42B5-AE38-ABC73FA72BB5");
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DefaultDLEditFileEntryDisplayContext.class);
 
 	private final DDMFormValuesFactory _ddmFormValuesFactory;
 	private final DDMStorageEngineManager _ddmStorageEngineManager;
