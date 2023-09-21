@@ -70,6 +70,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.interval.IntervalActionProcessor;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lock.InvalidLockException;
@@ -151,6 +152,7 @@ import com.liferay.portlet.documentlibrary.DLGroupServiceSettings;
 import com.liferay.portlet.documentlibrary.constants.DLConstants;
 import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryImpl;
 import com.liferay.portlet.documentlibrary.service.base.DLFileEntryLocalServiceBaseImpl;
+import com.liferay.portlet.documentlibrary.util.DLPermissionPropagationUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 
 import java.io.File;
@@ -2083,6 +2085,16 @@ public class DLFileEntryLocalServiceImpl
 				dlFileEntry.getUserId(), DLFileEntry.class.getName(),
 				dlFileEntry.getFileEntryId(),
 				serviceContext.getModelPermissions());
+		}
+
+		long inheritableParentFolderId =
+			DLPermissionPropagationUtil.getInheritableParentFolderId(
+				dlFileEntry);
+
+		if (FeatureFlagManagerUtil.isEnabled("LPS-87806") &&
+			(inheritableParentFolderId >= 0)) {
+
+			_inheritRolesPermissions(inheritableParentFolderId, dlFileEntry);
 		}
 	}
 
