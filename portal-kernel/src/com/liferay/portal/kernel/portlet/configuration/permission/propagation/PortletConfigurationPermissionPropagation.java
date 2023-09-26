@@ -5,6 +5,8 @@
 
 package com.liferay.portal.kernel.portlet.configuration.permission.propagation;
 
+import java.util.Map;
+
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletRequest;
@@ -19,6 +21,9 @@ public interface PortletConfigurationPermissionPropagation {
 	public String getMessage();
 
 	public boolean getPermissionPropagation(PortletRequest portletRequest);
+
+	public Map<String, String> getPermissionsTabs(
+		PortletRequest portletRequest);
 
 	public boolean isAvailable(PortletRequest portletRequest);
 

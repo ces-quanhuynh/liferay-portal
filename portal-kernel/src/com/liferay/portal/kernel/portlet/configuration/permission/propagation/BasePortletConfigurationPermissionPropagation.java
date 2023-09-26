@@ -12,6 +12,9 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletRequest;
@@ -44,6 +47,13 @@ public abstract class BasePortletConfigurationPermissionPropagation
 		}
 
 		return false;
+	}
+
+	@Override
+	public Map<String, String> getPermissionsTabs(
+		PortletRequest portletRequest) {
+
+		return new HashMap<>();
 	}
 
 	@Override

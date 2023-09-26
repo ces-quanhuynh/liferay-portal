@@ -5,6 +5,8 @@
 
 package com.liferay.portlet.configuration.web.internal.display.context;
 
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -12,6 +14,7 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.ResourcePrimKeyException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
@@ -307,6 +310,43 @@ public class PortletConfigurationPermissionsDisplayContext {
 			_httpServletRequest, "modelResourceDescription");
 
 		return _modelResourceDescription;
+	}
+
+	public List<NavigationItem> getNavigationItems() throws Exception {
+		PortletConfigurationPermissionPropagation
+			portletConfigurationPermissionPropagation =
+				getPortletConfigurationPermissionPropagation();
+
+		if (portletConfigurationPermissionPropagation == null) {
+			return Collections.emptyList();
+		}
+
+		List<NavigationItem> navigationItems = new ArrayList<>();
+
+		Map<String, String> permissionsTabs =
+			portletConfigurationPermissionPropagation.getPermissionsTabs(
+				_renderRequest);
+
+		for (Map.Entry<String, String> entry : permissionsTabs.entrySet()) {
+			String modelResource = entry.getValue();
+
+			navigationItems.add(
+				NavigationItemBuilder.setActive(
+					modelResource.equals(getModelResource())
+				).setHref(
+					PortletURLBuilder.create(
+						getIteratorURL()
+					).setParameter(
+						"modelResource", modelResource
+					).buildString()
+				).setLabel(
+					LanguageUtil.format(
+						_themeDisplay.getLocale(), "x-permissions",
+						entry.getKey())
+				).build());
+		}
+
+		return navigationItems;
 	}
 
 	public PortletConfigurationPermissionPropagation
