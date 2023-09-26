@@ -8,11 +8,16 @@ package com.liferay.document.library.web.internal.portlet.configuration.permissi
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.portal.kernel.portlet.configuration.permission.propagation.BasePortletConfigurationPermissionPropagation;
 import com.liferay.portal.kernel.portlet.configuration.permission.propagation.PortletConfigurationPermissionPropagation;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portlet.documentlibrary.constants.DLConstants;
 
+import javax.portlet.PortletRequest;
+
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author To Trinh
@@ -41,17 +46,35 @@ public class DLFolderPortletConfigurationPermissionPropagation
 	}
 
 	@Override
+	public boolean isAvailable(PortletRequest portletRequest) {
+		long[] classPKs = getClassPKs(portletRequest);
+
+		if ((classPKs.length == 1) && super.isAvailable(portletRequest)) {
+			if (getGroupId(portletRequest) == _getClassPK(portletRequest)) {
+				return true;
+			}
+
+			DLFolder dlFolder = _dlFolderLocalService.fetchDLFolder(
+				_getClassPK(portletRequest));
+
+			if (dlFolder != null) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	protected String getClassName() {
-		return DLFolder.class.getName();
+		return DLFolderConstants.getClassName();
 	}
 
 	@Override
 	protected boolean getDefaultPermissionPropagation(
 		long groupId, long classPK) {
 
-		if ((classPK == groupId) ||
-			(classPK == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
-
+		if (classPK == groupId) {
 			return DLFolderConstants.
 				DEFAULT_FOLDER_PERMISSION_PROPAGATION_ENABLED;
 		}
@@ -62,8 +85,20 @@ public class DLFolderPortletConfigurationPermissionPropagation
 	@Override
 	protected String[] getModelResources() {
 		return new String[] {
-			DLFolder.class.getName(), DLConstants.RESOURCE_NAME
+			DLConstants.RESOURCE_NAME, DLFolderConstants.getClassName()
 		};
 	}
+
+	private long _getClassPK(PortletRequest portletRequest) {
+		long[] resourcePrimKeys = getClassPKs(portletRequest);
+
+		return resourcePrimKeys[0];
+	}
+
+	@Reference
+	private DLFolderLocalService _dlFolderLocalService;
+
+	@Reference
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 }

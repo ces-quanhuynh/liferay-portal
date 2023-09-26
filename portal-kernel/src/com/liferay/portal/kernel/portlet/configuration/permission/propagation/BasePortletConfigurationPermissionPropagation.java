@@ -27,18 +27,23 @@ public abstract class BasePortletConfigurationPermissionPropagation
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		PermissionPropagationEntry permissionPropagationEntry =
-			PermissionPropagationEntryLocalServiceUtil.
-				fetchPermissionPropagationEntry(
-					themeDisplay.getCompanyId(), getGroupId(portletRequest),
-					getClassName(), getClassPK(portletRequest));
+		for (long classPK : getClassPKs(portletRequest)) {
+			PermissionPropagationEntry permissionPropagationEntry =
+				PermissionPropagationEntryLocalServiceUtil.
+					fetchPermissionPropagationEntry(
+						themeDisplay.getCompanyId(), getGroupId(portletRequest),
+						getClassName(), classPK);
 
-		if (permissionPropagationEntry != null) {
-			return permissionPropagationEntry.isPropagation();
+			if (((permissionPropagationEntry != null) &&
+				 permissionPropagationEntry.isPropagation()) ||
+				getDefaultPermissionPropagation(
+					getGroupId(portletRequest), classPK)) {
+
+				return true;
+			}
 		}
 
-		return getDefaultPermissionPropagation(
-			getGroupId(portletRequest), getClassPK(portletRequest));
+		return false;
 	}
 
 	@Override
@@ -46,13 +51,11 @@ public abstract class BasePortletConfigurationPermissionPropagation
 		String modelResource = ParamUtil.getString(
 			portletRequest, "modelResource");
 
-		if (!ArrayUtil.contains(getModelResources(), modelResource) ||
-			(getClassPK(portletRequest) == 0)) {
-
-			return false;
+		if (ArrayUtil.contains(getModelResources(), modelResource)) {
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	@Override
@@ -66,18 +69,20 @@ public abstract class BasePortletConfigurationPermissionPropagation
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		PermissionPropagationEntryLocalServiceUtil.
-			updatePermissionPropagationEntry(
-				themeDisplay.getCompanyId(), getGroupId(actionRequest),
-				getClassName(), getClassPK(actionRequest),
-				ParamUtil.getBoolean(
-					actionRequest, "permissionPropagationEnabled"));
+		for (long classPK : getClassPKs(actionRequest)) {
+			PermissionPropagationEntryLocalServiceUtil.
+				updatePermissionPropagationEntry(
+					themeDisplay.getCompanyId(), getGroupId(actionRequest),
+					getClassName(), classPK,
+					ParamUtil.getBoolean(
+						actionRequest, "permissionPropagationEnabled"));
+		}
 	}
 
 	protected abstract String getClassName();
 
-	protected long getClassPK(PortletRequest portletRequest) {
-		return ParamUtil.getLong(portletRequest, "resourcePrimKey");
+	protected long[] getClassPKs(PortletRequest portletRequest) {
+		return ParamUtil.getLongValues(portletRequest, "resourcePrimKey");
 	}
 
 	protected abstract boolean getDefaultPermissionPropagation(
