@@ -30,9 +30,11 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 <div class="cadmin edit-permissions portlet-configuration-edit-permissions">
 	<div class="portlet-configuration-body-content">
-		<clay:navigation-bar
-			navigationItems="<%= portletConfigurationPermissionsDisplayContext.getNavigationItems() %>"
-		/>
+		<div id="<portlet:namespace />propagationNavigationBar">
+			<clay:navigation-bar
+				navigationItems="<%= portletConfigurationPermissionsDisplayContext.getNavigationItems() %>"
+			/>
+		</div>
 
 		<clay:management-toolbar
 			clearResultsURL="<%= portletConfigurationPermissionsDisplayContext.getClearResultsURL() %>"
@@ -63,6 +65,10 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 		</c:if>
 
 		<aui:form action="<%= portletConfigurationPermissionsDisplayContext.getUpdateRolePermissionsURL() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+			<aui:input name="count" type="hidden">
+
+			</aui:input>
+
 			<liferay-ui:search-container
 				searchContainer="<%= roleSearchContainer %>"
 			>
@@ -319,6 +325,68 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 				if (form) {
 					submitForm(form);
+				}
+			}
+		});
+	}
+
+	function openPopUp(href) {
+		Liferay.Util.openModal({
+			bodyHTML:
+				'<liferay-ui:message key="changing-tab-without-save-helper" />',
+			buttons: [
+				{
+					autoFocus: true,
+					displayType: 'secondary',
+					label: '<liferay-ui:message key="cancel" />',
+					type: 'cancel',
+				},
+				{
+					displayType: 'secondary',
+					label: '<liferay-ui:message key="discard" />',
+					onClick: () => {
+						window.location.href = href;
+					},
+				},
+				{
+					displayType: 'warning',
+					label: '<liferay-ui:message key="save-and-continue" />',
+					onClick: () => {
+						<portlet:namespace />saveButton.dispatchEvent(
+							new Event('click')
+						);
+						window.location.href = href;
+					},
+				},
+			],
+			status: 'warning',
+			title: '<liferay-ui:message key="discard-changes" />' + '?',
+		});
+	}
+
+	var propagationNavigationBar = document.getElementById(
+		'<portlet:namespace />propagationNavigationBar'
+	);
+
+	if (propagationNavigationBar) {
+		propagationNavigationBar.addEventListener('click', (event) => {
+			if (event.target.tagName === 'SPAN' || event.target.tagName === 'A') {
+				event.preventDefault();
+				const target =
+					event.target.tagName === 'A'
+						? event.target
+						: event.target.parentElement;
+
+				var count = document.getElementById('<portlet:namespace />count');
+
+				if (
+					!target.classList.contains('active') &&
+					Number(count.value) !== 0
+				) {
+					openPopUp(target.href);
+				}
+				else {
+					window.location.href = target.href;
 				}
 			}
 		});

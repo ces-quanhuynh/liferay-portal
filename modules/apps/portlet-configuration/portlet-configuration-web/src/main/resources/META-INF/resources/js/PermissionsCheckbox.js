@@ -22,6 +22,8 @@ export default function PermissionsCheckbox({
 	const [indeterminate, setIndeterminate] = useState(
 		Boolean(initialIndeterminate)
 	);
+	const count = document.getElementById(_portletNamespace + 'count');
+
 	const [value, setValue] = useState(
 		initialIndeterminate ? 'indeterminate' : ''
 	);
@@ -33,6 +35,13 @@ export default function PermissionsCheckbox({
 			inline
 			onChange={() => {
 				setChecked((prevCheckedState) => !prevCheckedState);
+
+				if (checked === initialChecked) {
+					count.value = Number(count.value) - 1;
+				}
+				else {
+					count.value = Number(count.value) + 1;
+				}
 
 				if (indeterminate) {
 					setIndeterminate(false);
