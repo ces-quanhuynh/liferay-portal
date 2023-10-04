@@ -30,11 +30,13 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 <div class="cadmin edit-permissions portlet-configuration-edit-permissions">
 	<div class="portlet-configuration-body-content">
-		<div id="<portlet:namespace />propagationNavigationBar">
-			<clay:navigation-bar
-				navigationItems="<%= portletConfigurationPermissionsDisplayContext.getNavigationItems() %>"
-			/>
-		</div>
+		<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPS-87806") %>'>
+			<div id="<portlet:namespace />propagationNavigationBar">
+				<clay:navigation-bar
+					navigationItems="<%= portletConfigurationPermissionsDisplayContext.getNavigationItems() %>"
+				/>
+			</div>
+		</c:if>
 
 		<clay:management-toolbar
 			clearResultsURL="<%= portletConfigurationPermissionsDisplayContext.getClearResultsURL() %>"
@@ -65,6 +67,8 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 		</c:if>
 
 		<aui:form action="<%= portletConfigurationPermissionsDisplayContext.getUpdateRolePermissionsURL() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+			<aui:input name="redirect" type="hidden" />
+
 			<liferay-ui:search-container
 				searchContainer="<%= roleSearchContainer %>"
 			>
@@ -289,6 +293,8 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 			'<portlet:namespace />alertMessage'
 		);
 
+		var isPermissionPropagationEnabledCheckboxChanged = false;
+
 		if (<portlet:namespace />alertMessage) {
 			const initialPermissionPropagationEnabled =
 				<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
@@ -296,6 +302,10 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 			<portlet:namespace />permissionPropagationEnabledCheckbox.addEventListener(
 				'click',
 				(event) => {
+					isPermissionPropagationEnabledCheckboxChanged =
+						initialPermissionPropagationEnabled !==
+						<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
+
 					if (
 						initialPermissionPropagationEnabled ||
 						event.target.checked
@@ -310,53 +320,23 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 		}
 	}
 
+	function <portlet:namespace />updatePermissions() {
+		if (
+			<%= portletConfigurationPermissionsDisplayContext.getRoleSearchContainer().getTotal() != 0 %>
+		) {
+			var form = document.getElementById('<portlet:namespace />fm');
+
+			if (form) {
+				submitForm(form);
+			}
+		}
+	}
+
 	if (<portlet:namespace />saveButton) {
 		<portlet:namespace />saveButton.addEventListener('click', (event) => {
 			event.preventDefault();
 
-			if (
-				<%= portletConfigurationPermissionsDisplayContext.getRoleSearchContainer().getTotal() != 0 %>
-			) {
-				var form = document.getElementById('<portlet:namespace />fm');
-
-				if (form) {
-					submitForm(form);
-				}
-			}
-		});
-	}
-
-	function openPopUp(href) {
-		Liferay.Util.openModal({
-			bodyHTML:
-				'<liferay-ui:message key="changing-tab-without-save-helper" />',
-			buttons: [
-				{
-					autoFocus: true,
-					displayType: 'secondary',
-					label: '<liferay-ui:message key="cancel" />',
-					type: 'cancel',
-				},
-				{
-					displayType: 'secondary',
-					label: '<liferay-ui:message key="discard" />',
-					onClick: () => {
-						window.location.href = href;
-					},
-				},
-				{
-					displayType: 'warning',
-					label: '<liferay-ui:message key="save-and-continue" />',
-					onClick: () => {
-						<portlet:namespace />saveButton.dispatchEvent(
-							new Event('click')
-						);
-						window.location.href = href;
-					},
-				},
-			],
-			status: 'warning',
-			title: '<liferay-ui:message key="discard-changes" />' + '?',
+			<portlet:namespace />updatePermissions();
 		});
 	}
 
@@ -366,10 +346,11 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 	if (propagationNavigationBar) {
 		Liferay.Util.SessionStorage.setItem(
-			'<portlet:namespace />changeCount',
+			'<portlet:namespace />checkedPermissionChangeCount',
 			0,
 			Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 		);
+
 		propagationNavigationBar.addEventListener('click', (event) => {
 			if (event.target.tagName === 'SPAN' || event.target.tagName === 'A') {
 				const target =
@@ -377,18 +358,51 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 						? event.target
 						: event.target.parentElement;
 
-				let changeCount = Liferay.Util.SessionStorage.getItem(
-					'<portlet:namespace />changeCount',
+				let checkedPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
+					'<portlet:namespace />checkedPermissionChangeCount',
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
 
 				if (
 					!target.classList.contains('active') &&
-					Number(changeCount) !== 0
+					(Number(checkedPermissionChangeCount) !== 0 ||
+						isPermissionPropagationEnabledCheckboxChanged)
 				) {
 					event.preventDefault();
 
-					openPopUp(target.href);
+					Liferay.Util.openModal({
+						bodyHTML:
+							'<liferay-ui:message key="changing-tab-without-save-helper" />',
+						buttons: [
+							{
+								autoFocus: true,
+								displayType: 'secondary',
+								label: '<liferay-ui:message key="cancel" />',
+								type: 'cancel',
+							},
+							{
+								displayType: 'secondary',
+								label: '<liferay-ui:message key="discard" />',
+								onClick: () => {
+									Liferay.Util.navigate(target.href);
+								},
+							},
+							{
+								displayType: 'warning',
+								label:
+									'<liferay-ui:message key="save-and-continue" />',
+								onClick: () => {
+									document.getElementById(
+										'<portlet:namespace />redirect'
+									).value = target.href;
+
+									<portlet:namespace />updatePermissions();
+								},
+							},
+						],
+						status: 'warning',
+						title: '<liferay-ui:message key="discard-changes" />' + '?',
+					});
 				}
 			}
 		});

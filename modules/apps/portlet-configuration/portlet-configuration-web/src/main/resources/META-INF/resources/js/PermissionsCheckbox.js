@@ -35,18 +35,18 @@ export default function PermissionsCheckbox({
 			onChange={() => {
 				setChecked((prevCheckedState) => !prevCheckedState);
 
-				const changeCount = Liferay.Util.SessionStorage.getItem(
-					`${_portletNamespace}changeCount`,
+				const checkedPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
+					`${_portletNamespace}checkedPermissionChangeCount`,
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
 
 				const changeValue =
 					checked === initialChecked
-						? Number(changeCount) - 1
-						: Number(changeCount) + 1;
+						? Number(checkedPermissionChangeCount) - 1
+						: Number(checkedPermissionChangeCount) + 1;
 
 				Liferay.Util.SessionStorage.setItem(
-					`${_portletNamespace}changeCount`,
+					`${_portletNamespace}checkedPermissionChangeCount`,
 					changeValue,
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
