@@ -22,7 +22,6 @@ export default function PermissionsCheckbox({
 	const [indeterminate, setIndeterminate] = useState(
 		Boolean(initialIndeterminate)
 	);
-	const count = document.getElementById(_portletNamespace + 'count');
 
 	const [value, setValue] = useState(
 		initialIndeterminate ? 'indeterminate' : ''
@@ -36,12 +35,21 @@ export default function PermissionsCheckbox({
 			onChange={() => {
 				setChecked((prevCheckedState) => !prevCheckedState);
 
-				if (checked === initialChecked) {
-					count.value = Number(count.value) - 1;
-				}
-				else {
-					count.value = Number(count.value) + 1;
-				}
+				const changeCount = Liferay.Util.SessionStorage.getItem(
+					`${_portletNamespace}changeCount`,
+					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+				);
+
+				const changeValue =
+					checked === initialChecked
+						? Number(changeCount) - 1
+						: Number(changeCount) + 1;
+
+				Liferay.Util.SessionStorage.setItem(
+					`${_portletNamespace}changeCount`,
+					changeValue,
+					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+				);
 
 				if (indeterminate) {
 					setIndeterminate(false);

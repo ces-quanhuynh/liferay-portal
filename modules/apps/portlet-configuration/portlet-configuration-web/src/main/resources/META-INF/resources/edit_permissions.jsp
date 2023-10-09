@@ -65,10 +65,6 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 		</c:if>
 
 		<aui:form action="<%= portletConfigurationPermissionsDisplayContext.getUpdateRolePermissionsURL() %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
-			<aui:input name="count" type="hidden">
-
-			</aui:input>
-
 			<liferay-ui:search-container
 				searchContainer="<%= roleSearchContainer %>"
 			>
@@ -369,24 +365,30 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 	);
 
 	if (propagationNavigationBar) {
+		Liferay.Util.SessionStorage.setItem(
+			'<portlet:namespace />changeCount',
+			0,
+			Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+		);
 		propagationNavigationBar.addEventListener('click', (event) => {
 			if (event.target.tagName === 'SPAN' || event.target.tagName === 'A') {
-				event.preventDefault();
 				const target =
 					event.target.tagName === 'A'
 						? event.target
 						: event.target.parentElement;
 
-				var count = document.getElementById('<portlet:namespace />count');
+				let changeCount = Liferay.Util.SessionStorage.getItem(
+					'<portlet:namespace />changeCount',
+					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+				);
 
 				if (
 					!target.classList.contains('active') &&
-					Number(count.value) !== 0
+					Number(changeCount) !== 0
 				) {
+					event.preventDefault();
+
 					openPopUp(target.href);
-				}
-				else {
-					window.location.href = target.href;
 				}
 			}
 		});
