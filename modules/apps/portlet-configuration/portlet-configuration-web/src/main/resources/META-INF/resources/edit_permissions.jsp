@@ -295,10 +295,16 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 		var isPermissionPropagationEnabledCheckboxChanged = false;
 
-		if (<portlet:namespace />alertMessage) {
-			const initialPermissionPropagationEnabled =
-				<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
+		const initialPermissionPropagationEnabled =
+			<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
 
+		Liferay.Util.SessionStorage.setItem(
+			'<portlet:namespace />initialPermissionPropagationEnabled',
+			initialPermissionPropagationEnabled,
+			Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+		);
+
+		if (<portlet:namespace />alertMessage) {
 			<portlet:namespace />permissionPropagationEnabledCheckbox.addEventListener(
 				'click',
 				(event) => {
@@ -306,9 +312,16 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 						initialPermissionPropagationEnabled !==
 						<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
 
+					const checkedCurrentPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
+						'<portlet:namespace />permissionCheckboxChangeCount',
+						Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+					);
+
 					if (
-						initialPermissionPropagationEnabled ||
-						event.target.checked
+						initialPermissionPropagationEnabled !==
+							event.target.checked ||
+						(initialPermissionPropagationEnabled &&
+							Number(checkedCurrentPermissionChangeCount) !== 0)
 					) {
 						alertMessage.classList.remove('hide');
 					}
@@ -346,7 +359,7 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 	if (propagationNavigationBar) {
 		Liferay.Util.SessionStorage.setItem(
-			'<portlet:namespace />checkedPermissionChangeCount',
+			'<portlet:namespace />permissionCheckboxChangeCount',
 			0,
 			Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 		);
@@ -358,14 +371,14 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 						? event.target
 						: event.target.parentElement;
 
-				let checkedPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
-					'<portlet:namespace />checkedPermissionChangeCount',
+				const permissionCheckboxChangeCount = Liferay.Util.SessionStorage.getItem(
+					'<portlet:namespace />permissionCheckboxChangeCount',
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
 
 				if (
 					!target.classList.contains('active') &&
-					(Number(checkedPermissionChangeCount) !== 0 ||
+					(Number(permissionCheckboxChangeCount) !== 0 ||
 						isPermissionPropagationEnabledCheckboxChanged)
 				) {
 					event.preventDefault();

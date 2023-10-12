@@ -27,6 +27,15 @@ export default function PermissionsCheckbox({
 		initialIndeterminate ? 'indeterminate' : ''
 	);
 
+	const permissionPropagationEnabledCheckbox = document.getElementById(
+		_portletNamespace + 'permissionPropagationEnabled'
+	);
+
+	const initialPermissionPropagationEnabled = Liferay.Util.SessionStorage.getItem(
+		`${_portletNamespace}initialPermissionPropagationEnabled`,
+		Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+	);
+
 	return (
 		<ClayCheckbox
 			checked={checked}
@@ -35,18 +44,18 @@ export default function PermissionsCheckbox({
 			onChange={() => {
 				setChecked((prevCheckedState) => !prevCheckedState);
 
-				const checkedPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
-					`${_portletNamespace}checkedPermissionChangeCount`,
+				const permissionCheckboxChangeCount = Liferay.Util.SessionStorage.getItem(
+					`${_portletNamespace}permissionCheckboxChangeCount`,
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
 
 				const changeValue =
 					checked === initialChecked
-						? Number(checkedPermissionChangeCount) - 1
-						: Number(checkedPermissionChangeCount) + 1;
+						? Number(permissionCheckboxChangeCount) - 1
+						: Number(permissionCheckboxChangeCount) + 1;
 
 				Liferay.Util.SessionStorage.setItem(
-					`${_portletNamespace}checkedPermissionChangeCount`,
+					`${_portletNamespace}permissionCheckboxChangeCount`,
 					changeValue,
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
@@ -56,20 +65,16 @@ export default function PermissionsCheckbox({
 					setValue('');
 				}
 
-				const permissionPropagationEnabledCheckbox = document.getElementById(
-					_portletNamespace + 'permissionPropagationEnabled'
+				const alertMessage = document.getElementById(
+					_portletNamespace + 'alertMessage'
 				);
 
-				if (permissionPropagationEnabledCheckbox) {
-					const alertMessage = document.getElementById(
-						_portletNamespace + 'alertMessage'
-					);
-
-					if (
-						alertMessage.classList.contains('hide') &&
-						permissionPropagationEnabledCheckbox.checked
-					) {
+				if (permissionPropagationEnabledCheckbox.checked) {
+					if (changeValue !== 0) {
 						alertMessage.classList.remove('hide');
+					}
+					else if (initialPermissionPropagationEnabled === 'true') {
+						alertMessage.classList.add('hide');
 					}
 				}
 			}}
