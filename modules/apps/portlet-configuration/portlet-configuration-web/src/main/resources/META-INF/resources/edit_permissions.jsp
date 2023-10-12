@@ -295,10 +295,16 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 
 		var isPermissionPropagationEnabledCheckboxChanged = false;
 
-		if (<portlet:namespace />alertMessage) {
-			const initialPermissionPropagationEnabled =
-				<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
+		const initialPermissionPropagationEnabled =
+			<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
 
+		Liferay.Util.SessionStorage.setItem(
+			'<portlet:namespace />initialPermissionPropagationEnabled',
+			initialPermissionPropagationEnabled,
+			Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+		);
+
+		if (<portlet:namespace />alertMessage) {
 			<portlet:namespace />permissionPropagationEnabledCheckbox.addEventListener(
 				'click',
 				(event) => {
@@ -306,14 +312,31 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 						initialPermissionPropagationEnabled !==
 						<portlet:namespace />permissionPropagationEnabledCheckbox.checked;
 
-					if (
-						initialPermissionPropagationEnabled ||
-						event.target.checked
-					) {
-						alertMessage.classList.remove('hide');
+					const checkedCurrentPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
+						'<portlet:namespace />checkedPermissionChangeCount',
+						Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
+					);
+
+					if (event.target.checked) {
+						if (initialPermissionPropagationEnabled) {
+							if (Number(checkedCurrentPermissionChangeCount) === 0) {
+								alertMessage.classList.add('hide');
+							}
+							else {
+								alertMessage.classList.remove('hide');
+							}
+						}
+						else {
+							alertMessage.classList.remove('hide');
+						}
 					}
 					else {
-						alertMessage.classList.add('hide');
+						if (initialPermissionPropagationEnabled) {
+							alertMessage.classList.remove('hide');
+						}
+						else {
+							alertMessage.classList.add('hide');
+						}
 					}
 				}
 			);
@@ -358,7 +381,7 @@ PortletConfigurationPermissionPropagation portletConfigurationPermissionPropagat
 						? event.target
 						: event.target.parentElement;
 
-				let checkedPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
+				const checkedPermissionChangeCount = Liferay.Util.SessionStorage.getItem(
 					'<portlet:namespace />checkedPermissionChangeCount',
 					Liferay.Util.SessionStorage.TYPES.FUNCTIONAL
 				);
