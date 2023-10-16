@@ -1484,19 +1484,27 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		for (Map.Entry<Long, Set<String>> roleIdsToActionIdsEntry :
 				roleIdsToActionIds.entrySet()) {
 
-			Set<String> actionIds = roleIdsToActionIdsEntry.getValue();
+			Set<String> actionIdsSet = roleIdsToActionIdsEntry.getValue();
 
-			if (actionIds.contains(ActionKeys.ADD_FOLDER)) {
-				actionIds.remove(ActionKeys.ADD_FOLDER);
-				actionIds.add(ActionKeys.ADD_SUBFOLDER);
+			String[] actionIds;
+
+			if (actionIdsSet.isEmpty()) {
+				actionIds = new String[] {null};
+			}
+			else {
+				if (actionIdsSet.contains(ActionKeys.ADD_FOLDER)) {
+					actionIdsSet.remove(ActionKeys.ADD_FOLDER);
+					actionIdsSet.add(ActionKeys.ADD_SUBFOLDER);
+				}
+
+				actionIds = actionIdsSet.toArray(new String[0]);
 			}
 
 			_resourcePermissionLocalService.setResourcePermissions(
 				companyId, DLFolderConstants.getClassName(),
 				ResourceConstants.SCOPE_INDIVIDUAL,
 				String.valueOf(dlFolder.getFolderId()),
-				roleIdsToActionIdsEntry.getKey(),
-				actionIds.toArray(new String[0]));
+				roleIdsToActionIdsEntry.getKey(), actionIds);
 		}
 	}
 
