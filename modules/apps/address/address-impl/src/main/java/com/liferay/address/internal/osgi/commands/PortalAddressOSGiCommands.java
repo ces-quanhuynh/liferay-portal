@@ -5,8 +5,10 @@
 
 package com.liferay.address.internal.osgi.commands;
 
+import com.liferay.address.internal.configuration.AdditionalCountriesConfiguration;
 import com.liferay.address.internal.util.CompanyCountriesUtil;
 import com.liferay.osgi.util.osgi.commands.OSGiCommands;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -14,6 +16,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Release;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.CountryLocalService;
 import com.liferay.portal.kernel.service.RegionLocalService;
@@ -70,6 +73,38 @@ public class PortalAddressOSGiCommands implements OSGiCommands {
 		JSONArray countriesJSONArray = CompanyCountriesUtil.getJSONArray(
 			"com/liferay/address/dependencies/countries.json");
 
+		try {
+			AdditionalCountriesConfiguration additionalCountriesConfiguration =
+				_configurationProvider.getCompanyConfiguration(
+					AdditionalCountriesConfiguration.class,
+					company.getCompanyId());
+
+			if (additionalCountriesConfiguration.enableISO3166Countries()) {
+				JSONArray additionalCountriesJSONArray =
+					CompanyCountriesUtil.getJSONArray(
+						"com/liferay/address/dependencies" +
+							"/additional-iso-3166-countries.json");
+
+				for (int i = 0; i < additionalCountriesJSONArray.length();
+					 i++) {
+
+					JSONObject countryJSONObject =
+						additionalCountriesJSONArray.getJSONObject(i);
+
+					String name = countryJSONObject.getString("name");
+
+					if (!countryNames.contains(name)) {
+						countriesJSONArray.put(countryJSONObject);
+					}
+				}
+			}
+		}
+		catch (ConfigurationException configurationException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(configurationException);
+			}
+		}
+
 		for (int i = 0; i < countriesJSONArray.length(); i++) {
 			JSONObject countryJSONObject = countriesJSONArray.getJSONObject(i);
 
@@ -110,6 +145,9 @@ public class PortalAddressOSGiCommands implements OSGiCommands {
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private CountryLocalService _countryLocalService;
